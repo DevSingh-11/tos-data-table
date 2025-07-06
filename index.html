@@ -7,202 +7,296 @@
 <style>
   body {
     font-family: Arial, sans-serif;
-    margin: 20px;
-    background: #f9f9f9;
-  }
-  h1 {
-    text-align: center;
+    padding: 20px;
   }
   table {
-    width: 100%;
     border-collapse: collapse;
-    margin-top: 15px;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
   }
   th, td {
+    border: 1px solid #ddd;
     padding: 8px 12px;
-    border: 1px solid #ccc;
     text-align: left;
+    user-select: none;
+    cursor: pointer;
   }
   th {
-    background-color: #eee;
-    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
   }
   th:hover {
-    background-color: #ddd;
+    background-color: #45a049;
   }
-  button {
-    margin: 5px 5px 5px 0;
-    padding: 8px 15px;
-    font-size: 1rem;
-    cursor: pointer;
+  th.sorted-asc::after {
+    content: " ▲";
+  }
+  th.sorted-desc::after {
+    content: " ▼";
   }
 </style>
 </head>
 <body>
 
 <h1>TOS Shinobi Data Table</h1>
-
-<div>
-  <button onclick="sortTable('name')">Sort by Name (A-Z)</button>
-  <button onclick="sortTable('bp')">Sort by BP (High-Low)</button>
-  <button onclick="sortTable('maxStars')">Sort by Max Stars (Custom)</button>
-</div>
+<p>Click column headers to sort ascending/descending.</p>
 
 <table id="shinobiTable">
   <thead>
     <tr>
-      <th>Name</th>
-      <th>BP</th>
-      <th>Max Stars</th>
+      <th data-column="name" data-type="string">Name</th>
+      <th data-column="bp" data-type="number">BP</th>
+      <th data-column="stars" data-type="custom">Max Stars</th>
     </tr>
   </thead>
   <tbody>
-    <!-- Data rows will be inserted here by JS -->
+    <!-- Data rows inserted here by script -->
   </tbody>
 </table>
 
 <script>
+  // Data array: each entry is [Name, BP, Stars]
   const shinobiData = [
-    // 100* = UR
-    { name: "Kaguya: Amenominaka", bp: 1771406, maxStars: 100 },
-    { name: "Pain Rikudou Almight", bp: 1714101, maxStars: 100 },
-    { name: "Sasuke: Supporting Kage", bp: 1598887, maxStars: 100 },
-    { name: "Minato: Flame Hashira", bp: 1598352, maxStars: 100 },
-    { name: "Jiraiya: Sage Mode", bp: 1595282, maxStars: 100 },
-    { name: "Hashirama & Madara", bp: 1584876, maxStars: 100 },
-
-    // 99* = SP
-    { name: "Minato: Sage Mode", bp: 910721, maxStars: 99 },
-    { name: "Itachi: Susanoo", bp: 798487, maxStars: 99 },
-    { name: "Isshiki: Kama Reincarnated", bp: 791024, maxStars: 99 },
-    { name: "Sakura: Road to Ninja", bp: 783131, maxStars: 99 },
-    { name: "A & Killer B", bp: 764331, maxStars: 99 },
-    { name: "Madara: Six Paths", bp: 748602, maxStars: 99 },
-    { name: "Obito & Kakashi", bp: 743590, maxStars: 99 },
-    { name: "Hinata: The Last", bp: 739476, maxStars: 99 },
-    { name: "Naruto: Asura", bp: 739212, maxStars: 99 },
-    { name: "Naruto: Kurama Sage", bp: 738711, maxStars: 99 },
-    { name: "Sasuke: The Last", bp: 704513, maxStars: 99 },
-    { name: "Tanjiro Kamado", bp: 692046, maxStars: 99 },
-    { name: "Kushina: Kurama Possessed", bp: 690928, maxStars: 99 },
-    { name: "Boruto: Momoshiki Ego", bp: 679171, maxStars: 99 },
-
-    // 15*
-    { name: "Madara: Sage Mode", bp: 734531, maxStars: 15 },
-    { name: "Koji Kashin", bp: 732756, maxStars: 15 },
-    { name: "Nagato: Reanimation", bp: 732127, maxStars: 15 },
-    { name: "Obito: Six Paths", bp: 731198, maxStars: 15 },
-    { name: "Jiraiya", bp: 729934, maxStars: 15 },
-    { name: "Hagoromo Otsutsuki", bp: 727804, maxStars: 15 },
-    { name: "Sarada Uchiha", bp: 726437, maxStars: 15 },
-    { name: "Naruto: 9-Tails", bp: 726341, maxStars: 15 },
-    { name: "Sasuke & Itachi", bp: 724010, maxStars: 15 },
-    { name: "Naruto & Minato", bp: 723767, maxStars: 15 },
-    { name: "Mitsuki: Sage Mode", bp: 714490, maxStars: 15 },
-    { name: "Naruto: Baryon Mode", bp: 714392, maxStars: 15 },
-    { name: "Kawaki", bp: 713054, maxStars: 15 },
-    { name: "Momoshiki Otsutsuki", bp: 712027, maxStars: 15 },
-    { name: "Orochimaru: New Era", bp: 709317, maxStars: 15 },
-    { name: "Toneri Otsutsuki", bp: 708069, maxStars: 15 },
-    { name: "Itachi: Reanimation", bp: 706498, maxStars: 15 },
-    { name: "Kinkishi Otsutsuki", bp: 703799, maxStars: 15 },
-    { name: "Kushina Uzumaki", bp: 702980, maxStars: 15 },
-    { name: "Sasuke: Indra", bp: 698412, maxStars: 15 },
-    { name: "Sakura Uchiha", bp: 696247, maxStars: 15 },
-    { name: "Kaguya Otsutsuki", bp: 695338, maxStars: 15 },
-    { name: "Minato: 9-Tails", bp: 689752, maxStars: 15 },
-    { name: "Tsunade: Byakugo", bp: 689538, maxStars: 15 },
-    { name: "Hamura Otsutsuki", bp: 689388, maxStars: 15 },
-    { name: "Sage Hashirama", bp: 689119, maxStars: 15 },
-    { name: "Sakura Haruno", bp: 683375, maxStars: 15 },
-    { name: "Hinata Uzumaki", bp: 682387, maxStars: 15 },
-    { name: "Shisui Uchiha", bp: 680974, maxStars: 15 },
-    { name: "Kisame: Samehada Fused", bp: 680394, maxStars: 15 },
-    { name: "Orochimaru", bp: 672974, maxStars: 15 },
-    { name: "Boruto Uzumaki", bp: 671552, maxStars: 15 },
-    { name: "Hiruzen Sarutobi", bp: 668225, maxStars: 15 },
-    { name: "Kabuto: Sage Mode", bp: 668073, maxStars: 15 },
-    { name: "Mei: 5th Mizukage", bp: 661890, maxStars: 15 },
-    { name: "Minato Namikaze", bp: 660256, maxStars: 15 },
-    { name: "Madara: Susanoo", bp: 659412, maxStars: 15 },
-    { name: "Gengetsu Hozuki", bp: 658123, maxStars: 15 },
-    { name: "Kakashi: Susanoo", bp: 658115, maxStars: 15 },
-    { name: "Kisame Hoshigaki", bp: 657899, maxStars: 15 },
-    { name: "Hashirama Senju", bp: 657685, maxStars: 15 },
-    { name: "Sasuke Uchiha", bp: 657685, maxStars: 15 },
-    { name: "Mei Terumi", bp: 657075, maxStars: 15 },
-    { name: "Tsunade", bp: 656962, maxStars: 15 },
-    { name: "Madara Uchiha", bp: 655108, maxStars: 15 },
-    { name: "Shikamaru Nara", bp: 653459, maxStars: 15 },
-    { name: "Itachi Uchiha", bp: 652331, maxStars: 15 },
-    { name: "Neji Hyuga", bp: 650768, maxStars: 15 },
-    { name: "Danzo Shimura", bp: 647163, maxStars: 15 },
-    { name: "Killer Bee", bp: 646288, maxStars: 15 },
-    { name: "Kurenai Yuhi", bp: 645171, maxStars: 15 },
-    { name: "Sasuke Rikudou", bp: 643789, maxStars: 15 },
-    { name: "Kankuro", bp: 643011, maxStars: 15 },
-    { name: "Konan", bp: 642965, maxStars: 15 },
-    { name: "Shino Aburame", bp: 640234, maxStars: 15 },
-    { name: "Iruka Umino", bp: 636575, maxStars: 15 },
-    { name: "Kiba Inuzuka", bp: 635199, maxStars: 15 },
-    { name: "Choji Akimichi", bp: 630284, maxStars: 15 },
-    { name: "Kurenai", bp: 628745, maxStars: 15 }
+    ["Kaguya: Amenominaka", 1771406, "UR"],
+    ["Pain Rikudou Almight", 1714101, "UR"],
+    ["Sasuke: Supporting Kage", 1598887, "UR"],
+    ["Minato: Flame Hashira", 1598352, "UR"],
+    ["Jiraiya: Sage Mode", 1595282, "UR"],
+    ["Hashirama & Madara", 1584876, "UR"],
+    ["Minato: Sage Mode", 910721, "SP"],
+    ["Itachi: Susanoo", 798487, "SP"],
+    ["Isshiki: Kama Reincarnated", 791024, "SP"],
+    ["Sakura: Road to Ninja", 783131, "SP"],
+    ["A & Killer B", 764331, "SP"],
+    ["Madara: Six Paths", 748602, "SP"],
+    ["Obito & Kakashi", 743590, "SP"],
+    ["Hinata: The Last", 739476, "SP"],
+    ["Naruto: Asura", 739212, "SP"],
+    ["Naruto: Kurama Sage", 738711, "SP"],
+    ["Sasuke: The Last", 704513, "SP"],
+    ["Tanjiro Kamado", 692046, "SP"],
+    ["Kushina: Kurama Possessed", 690928, "SP"],
+    ["Boruto: Momoshiki Ego", 679171, "SP"],
+    ["Madara: Sage Mode", 734531, "15*"],
+    ["Koji Kashin", 732756, "15*"],
+    ["Nagato: Reanimation", 732127, "15*"],
+    ["Obito: Six Paths", 731198, "15*"],
+    ["Jiraiya", 729934, "15*"],
+    ["Hagoromo Otsutsuki", 727804, "15*"],
+    ["Sarada Uchiha", 726437, "15*"],
+    ["Naruto: 9-Tails", 726341, "15*"],
+    ["Sasuke & Itachi", 724010, "15*"],
+    ["Naruto & Minato", 723767, "15*"],
+    ["Mitsuki: Sage Mode", 714490, "15*"],
+    ["Naruto: Baryon Mode", 714392, "15*"],
+    ["Kawaki", 713054, "15*"],
+    ["Momoshiki Otsutsuki", 712027, "15*"],
+    ["Orochimaru: New Era", 709317, "15*"],
+    ["Toneri Otsutsuki", 708069, "15*"],
+    ["Itachi: Reanimation", 706498, "15*"],
+    ["Kinkishi Otsutsuki", 703799, "15*"],
+    ["Kushina Uzumaki", 702980, "15*"],
+    ["Sasuke: Indra", 698412, "15*"],
+    ["Sakura Uchiha", 696247, "15*"],
+    ["Kaguya Otsutsuki", 695338, "15*"],
+    ["Minato: 9-Tails", 689752, "15*"],
+    ["Tsunade: Byakugo", 689538, "15*"],
+    ["Hamura Otsutsuki", 689388, "15*"],
+    ["Sage Hashirama", 689119, "15*"],
+    ["Sakura Haruno", 683375, "15*"],
+    ["Hinata Uzumaki", 682387, "15*"],
+    ["Shisui Uchiha", 680974, "15*"],
+    ["Kisame: Samehada Fused", 680394, "15*"],
+    ["Orochimaru", 672974, "15*"],
+    ["Boruto Uzumaki", 671552, "15*"],
+    ["Hiruzen Sarutobi", 668225, "15*"],
+    ["Kabuto: Sage Mode", 668073, "15*"],
+    ["Mei: 5th Mizukage", 661890, "15*"],
+    ["Minato Namikaze", 660256, "15*"],
+    ["Madara: Susanoo", 659412, "15*"],
+    ["Gengetsu Hozuki", 658123, "15*"],
+    ["Kakashi: Susanoo", 658115, "15*"],
+    ["Kisame Hoshigaki", 657899, "15*"],
+    ["Hashirama Senju", 657685, "15*"],
+    ["Sasuke Uchiha", 657685, "15*"],
+    ["Mei Terumi", 657075, "15*"],
+    ["Tsunade", 656962, "15*"],
+    ["Madara Uchiha", 655108, "15*"],
+    ["Shikamaru Nara", 653459, "15*"],
+    ["Itachi Uchiha", 652331, "15*"],
+    ["Neji Hyuga", 650768, "15*"],
+    ["Danzo", 649934, "15*"],
+    ["Gaara: New Era", 649932, "15*"],
+    ["Tobirama Senju", 644692, "15*"],
+    ["Gaara", 644616, "15*"],
+    ["Tendo: Pain", 644042, "15*"],
+    ["Konan", 633200, "15*"],
+    ["Guy: Eight Gates", 627101, "15*"],
+    ["Obito: Masked", 595433, "15*"],
+    ["Naruto: Sage Mode", 594902, "15*"],
+    ["Asuma Sautobi", 584916, "15*"],
+    ["Zabuza Momochi", 588047, "15*"],
+    ["Yagura", 536574, "13*"],
+    ["Killer B", 525909, "13*"],
+    ["Mu", 521167, "13*"],
+    ["Yugito Nii", 515344, "13*"],
+    ["Kakashi", 515147, "13*"],
+    ["Hanzo", 514978, "13*"],
+    ["Onoki", 513155, "13*"],
+    ["Hidan", 133751, "9*"],
+    ["Kakuzu", 131635, "9*"],
+    ["Ginkaku: Reanimation", 127029, "9*"],
+    ["Kinkaku: Reanimation", 124670, "9*"],
+    ["Deidara", 124556, "9*"],
+    ["Sasori", 124549, "9*"],
+    ["Zetsu", 124151, "9*"],
+    ["Suigetsu Hozuki", 123878, "9*"],
+    ["Karin Uzumaki", 123339, "9*"],
+    ["Rasa", 122427, "9*"],
+    ["Yamato", 119074, "9*"],
+    ["Naruto: Teen", 11565, "4*"],
+    ["Hinata Hyuga", 9357, "4*"],
+    ["Choji Akimichi", 9273, "4*"],
+    ["Kimimaro", 9269, "4*"],
+    ["Shin Uchiha", 9261, "4*"],
+    ["Tenten", 9204, "4*"],
+    ["Ino Yamanaka", 9191, "4*"],
+    ["Sai", 9100, "4*"],
+    ["White Zetsu Obito", 9094, "4*"],
+    ["Sasuke Teen:", 8794, "4*"],
+    ["Hanabi Hyuga", 8769, "4*"],
+    ["Kiba Inuzuka: Teen", 8711, "4*"],
+    ["Rock Lee: Teen", 8703, "4*"],
+    ["Mangetsu Hozuki", 8702, "4*"],
+    ["Haku", 8697, "4*"],
+    ["Kankuro: Teen", 8674, "4*"],
+    ["Temari: Teen:", 8666, "4*"],
+    ["Sakura Haruno: Teen", 8625, "4*"],
+    ["Hinata Hyuga: Teen", 8624, "4*"],
+    ["Gaara: Teen", 8575, "4*"],
+    ["Neji Hyuga: Teen", 8562, "4*"],
+    ["Choji Akimichi: Teen", 8545, "4*"],
+    ["Kakashi: Teen", 8541, "4*"],
+    ["Yang", 5629, "3*"],
+    ["Yin", 5594, "3*"],
+    ["Shizune", 5386, "3*"],
+    ["Jugo", 5385, "3*"],
+    ["Anko Mitarashi", 5349, "3*"],
+    ["Fuguki", 5341, "3*"],
+    ["Iruka Umino", 5309, "3*"],
+    ["Kurenai Yuhi", 5303, "3*"],
+    ["Kushimaru Kuriarare", 5300, "3*"],
+    ["Ameyuri Ringo", 5298, "3*"],
+    ["Jinpachi Munashi", 5293, "3*"],
+    ["Jirobo", 5250, "3*"],
+    ["Aburame Shino", 5248, "3*"],
+    ["Chiyo", 5246, "3*"],
+    ["Jinin Akebino", 5234, "3*"],
+    ["Yugao Uzuki", 5225, "3*"],
+    ["Sakon and Ukon", 5220, "3*"],
+    ["Sound Ninja", 3449, "2*"],
+    ["Iron Samurai", 3423, "2*"],
+    ["Kidomaru", 3396, "2*"],
+    ["Ebizou", 3392, "2*"],
+    ["Tayuya", 3389, "2*"],
+    ["Mizuki", 3377, "2*"],
+    ["Sand Ninja", 1954, "1*"],
+    ["Hidden Leaf Ninja", 1950, "1*"],
+    ["Amegakure Ninja", 1932, "1*"]
   ];
 
+  // Custom star order for sorting:
+  // UR=100, SP=99, then 15*, 13*, 9*, 4*, 3*, 2*, 1* descending
+  const starSortOrder = {
+    "UR": 100,
+    "SP": 99,
+    "15*": 15,
+    "13*": 13,
+    "9*": 9,
+    "4*": 4,
+    "3*": 3,
+    "2*": 2,
+    "1*": 1
+  };
+
   const tableBody = document.querySelector("#shinobiTable tbody");
+  const headers = document.querySelectorAll("#shinobiTable th");
 
-  // Helper function to display stars:
-  function displayStars(stars) {
-    if (stars === 100) return 'UR';
-    if (stars === 99) return 'SP';
-    return stars + '*';
-  }
-
-  // Function to render the table
+  // Render table rows from data
   function renderTable(data) {
-    tableBody.innerHTML = ''; // Clear existing rows
-    data.forEach(shinobi => {
-      const row = document.createElement('tr');
-      // Name
-      const nameCell = document.createElement('td');
-      nameCell.textContent = shinobi.name;
-      row.appendChild(nameCell);
-
-      // BP
-      const bpCell = document.createElement('td');
-      bpCell.textContent = shinobi.bp.toLocaleString();
-      row.appendChild(bpCell);
-
-      // Max Stars
-      const starCell = document.createElement('td');
-      starCell.textContent = displayStars(shinobi.maxStars);
-      row.appendChild(starCell);
-
-      tableBody.appendChild(row);
+    tableBody.innerHTML = ""; // Clear previous rows
+    data.forEach(row => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${row[0]}</td>
+        <td>${row[1].toLocaleString()}</td>
+        <td>${row[2]}</td>
+      `;
+      tableBody.appendChild(tr);
     });
   }
 
-  // Sorting function
-  function sortTable(criterion) {
-    let sortedData = [...shinobiData]; // copy
+  // Current sort state
+  let currentSort = {
+    column: null,
+    direction: 'desc' // or 'asc'
+  };
 
-    if (criterion === 'name') {
-      // Sort ascending alphabetically by name
-      sortedData.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (criterion === 'bp') {
-      // Sort descending by BP
-      sortedData.sort((a, b) => b.bp - a.bp);
-    } else if (criterion === 'maxStars') {
-      // Sort descending by maxStars (100 > 99 > others)
-      // 100 (UR) first, then 99 (SP), then rest numeric descending
-      sortedData.sort((a, b) => b.maxStars - a.maxStars);
+  // Sorting function
+  function sortTable(column, type) {
+    if (currentSort.column === column) {
+      // Toggle direction
+      currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+      currentSort.column = column;
+      currentSort.direction = 'desc'; // default descending on new column
     }
 
-    renderTable(sortedData);
+    // Remove sorted classes from all headers
+    headers.forEach(h => h.classList.remove('sorted-asc', 'sorted-desc'));
+
+    // Add sorted class to clicked header
+    const header = Array.from(headers).find(h => h.dataset.column === column);
+    header.classList.add(currentSort.direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
+
+    const colIndex = { name: 0, bp: 1, stars: 2 }[column];
+
+    shinobiData.sort((a, b) => {
+      let valA = a[colIndex];
+      let valB = b[colIndex];
+
+      if (type === "number") {
+        return currentSort.direction === "asc" ? valA - valB : valB - valA;
+      } else if (type === "string") {
+        valA = valA.toLowerCase();
+        valB = valB.toLowerCase();
+        if (valA < valB) return currentSort.direction === "asc" ? -1 : 1;
+        if (valA > valB) return currentSort.direction === "asc" ? 1 : -1;
+        return 0;
+      } else if (type === "custom") {
+        // Custom stars sort by defined order number
+        const orderA = starSortOrder[valA] || 0;
+        const orderB = starSortOrder[valB] || 0;
+        return currentSort.direction === "asc" ? orderA - orderB : orderB - orderA;
+      }
+      return 0;
+    });
+
+    renderTable(shinobiData);
   }
 
-  // Initial table render - sort by name by default
-  sortTable('name');
+  // Initial render sorted by BP descending
+  sortTable("bp", "number");
+
+  // Add event listeners to headers
+  headers.forEach(header => {
+    header.addEventListener("click", () => {
+      const column = header.dataset.column;
+      const type = header.dataset.type;
+      sortTable(column, type);
+    });
+  });
 </script>
 
 </body>
